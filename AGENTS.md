@@ -15,7 +15,7 @@
 - Python ≥3.10, 4-space indents, full typing. Classes in `PascalCase`, functions/vars `snake_case`.
 - Indicators must inherit `IndicatorBase`, accept a `BaseModel` params object, expose `on_bars(bars: List[dict])`, and return `List[IndicatorResultBase]`.
 - Bar dictionaries contain `timestamp, open, high, low, close, volume` floats/ints; keep logic deterministic and side-effect free. Add concise docstrings for non-trivial sections.
-- Outputs must align 1:1 with input bars; keep `nan` warmups intact. Result models live in `base.py` and are imported by `ta_indicator.py`.
+- Outputs must align 1:1 with input bars; keep `nan` warmups intact. `base.py` exposes the shared BaseModel contract, while concrete result models reside in `ta_indicator.py`.
 
 ## Testing Guidelines
 - Use `pytest` with descriptive names (`tests/test_ta_indicator.py`). Load fixtures via helper functions to convert CSV rows into bar dicts.

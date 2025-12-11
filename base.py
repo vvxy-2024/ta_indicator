@@ -15,33 +15,6 @@ class IndicatorResultBase(BaseModel):
     buy: Optional[bool] = Field(default=None, description="buy signal")
     sell: Optional[bool] = Field(default=None, description="sell signal")
 
-
-class MACDResult(IndicatorResultBase):
-    macd: float = Field(..., description="MACD值")
-    signal: float = Field(..., description="信号线")
-    hist: float = Field(..., description="柱状图")
-
-
-class ATRResult(IndicatorResultBase):
-    atr: float = Field(..., description="ATR值")
-
-
-class CCIResult(IndicatorResultBase):
-    cci: float = Field(..., description="CCI值")
-
-
-class RSIResult(IndicatorResultBase):
-    rsi: float = Field(..., description="RSI值")
-
-
-class MAResult(IndicatorResultBase):
-    ma: float = Field(..., description="MA值")
-
-
-class EMAResult(IndicatorResultBase):
-    ema: float = Field(..., description="EMA值")
-
-
 class IndicatorBase(ABC):
     """Base context-managed indicator."""
 

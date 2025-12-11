@@ -1,6 +1,6 @@
 # Repository Guidelines
 
-- `ta_indicator.py` is the main indicator implementation that consumes the shared models defined in `base.py`.
+- `ta_indicator.py` and `ta_indicator_poc.py` provide ready-made indicators (multi-TA and daily volume profile). Both consume the shared contracts in `base.py`.
 - Prompt materials live in `docs/prompt/indicator_template.md`; `template.txt` simply points to that spec. Keep the doc updated before generating new code via AI.
 - Scripts or helper utilities should live under `scripts/` (add as needed). Historical fixtures/tests were removed to keep the template lightweight; add your own when required.
 - Treat the repo as an extensible template by editing `ta_indicator.py` (or generating a new single-file indicator) and, if needed, creating your own regression validation assets.

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
 import talib
@@ -73,8 +73,16 @@ class ta_indicator(IndicatorBase):
         "EMA": (20,),
     }
 
-    def __init__(self, params: TAConfig):
-        self.params = params
+    def __init__(self, params: Union[TAConfig, Dict[str, Any]]):
+        """
+        Accepts either a TAConfig instance or a plain dict containing the same fields.
+        Dict example:
+            {
+                "name": "MACD",
+                "params": (12, 26, 9)
+            }
+        """
+        self.params = params if isinstance(params, TAConfig) else TAConfig(**params)
 
     def describe_purpose(self) -> str:
         return (
@@ -84,8 +92,7 @@ class ta_indicator(IndicatorBase):
 
     def describe_params(self) -> str:
         return (
-            "TAConfig(name: str, params: Tuple[float, ...]). "
-            "name selects the TA-Lib function (ATR/CCI/MACD/RSI/MA/EMA). "
+            "Accepts TAConfig or dict with fields: name (ATR/CCI/MACD/RSI/MA/EMA) and params Tuple[float, ...]. "
             "params supplies the periods: ATR(timeperiod), CCI(timeperiod), "
             "MACD(fast, slow, signal), RSI(timeperiod), MA(timeperiod), EMA(timeperiod). "
             "If params is empty the class defaults to (14), (20), or (12,26,9) accordingly."

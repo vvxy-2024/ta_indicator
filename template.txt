@@ -1,0 +1,9 @@
+本仓库的指标/策略生成规范已迁移至 `docs/prompt/indicator_template.md`。
+
+在请求 AI 生成新的指标类前，请阅读该文档，它包含：
+- 必须继承的基类（`IndicatorBase`、`IndicatorResultBase`）
+- `on_bars` 输入输出要求
+- BaseModel 参数与结果示例
+- 使用 TA-Lib 的计算流程与提示语模板
+
+可直接复制文档中的 Prompt 模板，通过 AI 生成符合测试与目录结构的策略代码。

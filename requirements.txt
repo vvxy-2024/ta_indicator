@@ -1,0 +1,4 @@
+# Managed via uv; run `uv export --frozen > requirements.txt` after dependency changes.
+pydantic>=1.10.0,<2.0.0
+numpy>=1.24.0
+TA-Lib>=0.4.28

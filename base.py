@@ -40,5 +40,5 @@ class IndicatorBase(ABC):
 
     @abstractmethod
     def on_bar(self, bars: List[list]) -> List[IndicatorResultBase]:
-        """Process price data where each bar = [timestamp, open, high, low, close, volume, is_close]."""
+        """Process price data where each bar = [timestamp, open, high, low, close, volume, is_close] and return a list with the same length, using None for missing values to keep alignment."""
         raise NotImplementedError

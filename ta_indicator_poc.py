@@ -1,9 +1,8 @@
-"""Volume Profile indicator computing POC/VAH/VAL per trading day."""
+"""Volume Profile indicator computing running POC/VAH/VAL."""
 
 from __future__ import annotations
 
 from collections import defaultdict
-from datetime import datetime, timezone
 from typing import Any, Dict, List, Tuple, Union
 
 import math
@@ -15,8 +14,8 @@ from base import IndicatorBase, IndicatorResultBase
 
 class POCResult(IndicatorResultBase):
     poc: float | None = Field(default=None, description="Point of Control price level")
-    vah: float | None = Field(default=None, description="Value Area High (70% volume)")
-    val: float | None = Field(default=None, description="Value Area Low (70% volume)")
+    vah: float | None = Field(default=None, description="Value Area High (covering 70% volume)")
+    val: float | None = Field(default=None, description="Value Area Low (covering 70% volume)")
 
 
 class POCParams(BaseModel):
@@ -30,7 +29,7 @@ class POCParams(BaseModel):
 
 
 class ta_indicator_poc(IndicatorBase):
-    """Compute POC/VAH/VAL volume profile metrics per UTC day."""
+    """Compute POC/VAH/VAL metrics cumulatively from the first bar onward."""
 
     VERSION = "1.0.0"
 
@@ -46,22 +45,21 @@ class ta_indicator_poc(IndicatorBase):
 
     def describe_purpose(self) -> str:
         return (
-            "Build a per-day volume profile to extract Point of Control (maximum volume price) "
-            "and the 70% value area bounds (VAH/VAL). Each day's calculations reset when the "
-            "timestamp crosses into a new UTC date."
+            "Accumulate all bars from the start of the dataset to build a running volume profile. "
+            "At each bar, output the Point of Control (highest-volume price) plus the value-area "
+            "high/low bounds covering the configured percentage of total volume."
         )
 
     def describe_params(self) -> str:
         return (
             "POCParams or dict with `value_area_pct` (float 0-1, default 0.7) "
-            "specifying how much of the day's volume must be included in the value area."
+            "specifying how much of the cumulative volume must be included in the value area."
         )
 
     def describe_output(self) -> str:
         return (
             "Returns a list of POCResult objects (timestamp-aligned). For each bar, POC/VAH/VAL "
-            "reflect the completed daily profile; values remain None until enough data exists "
-            "to compute that day's metrics."
+            "reflect the running profile from the first bar through the current bar."
         )
 
     def on_bar(self, bars: List[list]) -> List[IndicatorResultBase]:
@@ -69,45 +67,25 @@ class ta_indicator_poc(IndicatorBase):
             return []
 
         parsed_rows = self._parse_bars(bars)
-        results: List[POCResult | None] = [None] * len(parsed_rows)
-
-        current_day = None
-        day_indices: List[int] = []
         profile = defaultdict(float)
+        results: List[POCResult] = []
 
-        for idx, (ts, close_price, volume, day_id) in enumerate(parsed_rows):
-            if current_day is None:
-                current_day = day_id
-            elif day_id != current_day:
-                poc, vah, val = self._compute_profile(profile)
-                for i in day_indices:
-                    results[i] = POCResult(
-                        timestamp=parsed_rows[i][0],
-                        poc=poc,
-                        vah=vah,
-                        val=val,
-                    )
-                profile.clear()
-                day_indices.clear()
-                current_day = day_id
-
+        for timestamp, close_price, volume in parsed_rows:
             profile[close_price] += volume
-            day_indices.append(idx)
-
-        # finalize last day
-        poc, vah, val = self._compute_profile(profile)
-        for i in day_indices:
-            results[i] = POCResult(
-                timestamp=parsed_rows[i][0],
-                poc=poc,
-                vah=vah,
-                val=val,
+            poc, vah, val = self._compute_profile(profile)
+            results.append(
+                POCResult(
+                    timestamp=timestamp,
+                    poc=poc,
+                    vah=vah,
+                    val=val,
+                )
             )
 
-        return [res if res is not None else POCResult(timestamp=parsed_rows[idx][0]) for idx, res in enumerate(results)]
+        return results
 
     @staticmethod
-    def _parse_bars(bars: List[list]) -> List[Tuple[int, float, float, int]]:
+    def _parse_bars(bars: List[list]) -> List[Tuple[int, float, float]]:
         parsed = []
         for row in bars:
             if not isinstance(row, (list, tuple)) or len(row) < 7:
@@ -117,14 +95,8 @@ class ta_indicator_poc(IndicatorBase):
             timestamp = int(row[0])
             close = float(row[4])
             volume = float(row[5])
-            day_id = ta_indicator_poc._day_bucket(timestamp)
-            parsed.append((timestamp, close, volume, day_id))
+            parsed.append((timestamp, close, volume))
         return parsed
-
-    @staticmethod
-    def _day_bucket(timestamp_ms: int) -> int:
-        dt = datetime.fromtimestamp(timestamp_ms / 1000, tz=timezone.utc)
-        return int(dt.strftime("%Y%m%d"))
 
     def _compute_profile(self, profile: Dict[float, float]) -> Tuple[float | None, float | None, float | None]:
         if not profile:

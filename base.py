@@ -39,5 +39,6 @@ class IndicatorBase(ABC):
         """Return detailed information about the output structure."""
 
     @abstractmethod
-    def on_bar(self, bars: List[dict]) -> List[IndicatorResultBase]:
+    def on_bar(self, bars: List[list]) -> List[IndicatorResultBase]:
+        """Process price data where each bar = [timestamp, open, high, low, close, volume, is_close]."""
         raise NotImplementedError

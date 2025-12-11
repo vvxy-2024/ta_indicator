@@ -2,8 +2,8 @@
 
 - `ta_indicator.py` is the main indicator implementation that consumes the shared models defined in `base.py`.
 - Prompt materials live in `docs/prompt/indicator_template.md`; `template.txt` simply points to that spec. Keep the doc updated before generating new code via AI.
-- Tests live in `tests/`; shared fixtures sit under `tests/fixtures/` (e.g., `BTCUSDT-1m-2025-11.csv`). Scripts that aid generation/validation live in `scripts/`.
-- Treat the repo as an extensible template by editing `ta_indicator.py` (or generating a new single-file indicator) and pairing it with regression tests.
+- Scripts or helper utilities should live under `scripts/` (add as needed). Historical fixtures/tests were removed to keep the template lightweight; add your own when required.
+- Treat the repo as an extensible template by editing `ta_indicator.py` (or generating a new single-file indicator) and, if needed, creating your own regression validation assets.
 
 ## Build, Test, and Development Commands
 - Create a virtualenv with uv: `uv venv .venv && source .venv/bin/activate`.
@@ -13,14 +13,13 @@
 
 ## Coding Style & Naming Conventions
 - Python ≥3.10, 4-space indents, full typing. Classes in `PascalCase`, functions/vars `snake_case`.
-- Indicators must inherit `IndicatorBase`, accept a `BaseModel` params object, expose `on_bars(bars: List[dict])`, and return `List[IndicatorResultBase]`.
-- Bar dictionaries contain `timestamp, open, high, low, close, volume` floats/ints; keep logic deterministic and side-effect free. Add concise docstrings for non-trivial sections.
+- Indicators must inherit `IndicatorBase`, accept a `BaseModel` params object, expose `on_bars(bars: List[list])`, and return `List[IndicatorResultBase]`.
+- Bar payloads are simple lists ordered as `[timestamp, open, high, low, close, volume, is_close]`; keep logic deterministic and side-effect free. Add concise docstrings for non-trivial sections.
 - Outputs must align 1:1 with input bars; keep `nan` warmups intact. `base.py` exposes the shared BaseModel contract, while concrete result models reside in `ta_indicator.py`.
 
 ## Testing Guidelines
-- Use `pytest` with descriptive names (`tests/test_ta_indicator.py`). Load fixtures via helper functions to convert CSV rows into bar dicts.
-- Validate timestamp alignment, value types, and boundary behaviors (empty list, short series). Cover schema errors (missing fields) as well as successful paths.
-- When adding new indicators, create dedicated test modules and reuse the BTCUSDT data for deterministic regression checks.
+- No tests are bundled by default. When adding your own, prefer `pytest` and bar fixtures derived from `BTCUSDT-1m-2025-11.csv`.
+- Validate timestamp alignment, value types, boundary behaviors (empty list, short series), and schema errors (missing columns) before shipping changes.
 
 ## Automation & Workflow
 - `scripts/gen_indicator_prompt.py` prints the canonical AI prompt; pipe it into an editor or API request body.

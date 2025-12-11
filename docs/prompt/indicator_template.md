@@ -5,20 +5,10 @@ Use this specification when requesting a new indicator class from an AI model. I
 ## 1. Required Structure
 1. Indicator classes inherit `IndicatorBase` from `base.py`.
 2. Initialization accepts a single `BaseModel` parameters object (e.g., `MACDParams`).
-3. Indicators implement `on_bars(self, bars: List[dict]) -> List[IndicatorResultBase]` and support `with` context management.
+3. Indicators implement `on_bars(self, bars: List[list]) -> List[IndicatorResultBase]` and support `with` context management.
 
 ## 2. Input Schema
-- `bars` is a list of dicts with keys:
-  ```python
-  {
-      "timestamp": int,
-      "open": float,
-      "high": float,
-      "low": float,
-      "close": float,
-      "volume": float,
-  }
-  ```
+- `bars` is a list of lists in the order `[timestamp, open, high, low, close, volume, is_close]`.
 - The method must accept the full series and preserve order.
 
 ## 3. Output Schema
@@ -74,5 +64,5 @@ class MACDIndicator(IndicatorBase):
 
 ## 6. Usage Notes
 - Keep indicator implementations in `ta_indicator.py` (or another single-file module) so they remain easy to drop into downstream systems.
-- Add regression tests in `tests/` using the BTCUSDT fixture.
-- Run `scripts/validate_indicator.py` to lint basic constraints before submitting PRs.
+- Add your own regression tests (pytest recommended) using the BTCUSDT fixture if automated validation is desired.
+- Run any validation scripts or linting tools you add before submitting PRs.

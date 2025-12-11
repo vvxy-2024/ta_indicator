@@ -98,18 +98,27 @@ class ta_indicator(IndicatorBase):
             "(atr/cci/rsi/ma/ema or macd/signal/hist). Warm-up elements may be NaN."
         )
 
-    def on_bar(self, bars: List[dict]) -> List[IndicatorResultBase]:
+    def on_bar(self, bars: List[list]) -> List[IndicatorResultBase]:
         if not bars:
             return []
 
-        required_keys = {"timestamp", "open", "high", "low", "close", "volume"}
-        if any(not required_keys.issubset(bar) for bar in bars):
-            raise ValueError(f"Each bar must include keys: {sorted(required_keys)}")
+        parsed_rows: List[list] = []
+        for row in bars:
+            if not isinstance(row, (list, tuple)) or len(row) < 7:
+                raise ValueError(
+                    "Each bar must be a list like [timestamp, open, high, low, close, volume, is_close]"
+                )
+            parsed_rows.append(row)
 
-        closes = np.array([bar["close"] for bar in bars], dtype=float)
-        highs = np.array([bar["high"] for bar in bars], dtype=float)
-        lows = np.array([bar["low"] for bar in bars], dtype=float)
-        timestamps = [bar["timestamp"] for bar in bars]
+        timestamps = [int(row[0]) for row in parsed_rows]
+        opens = np.array([float(row[1]) for row in parsed_rows], dtype=float)
+        highs = np.array([float(row[2]) for row in parsed_rows], dtype=float)
+        lows = np.array([float(row[3]) for row in parsed_rows], dtype=float)
+        closes = np.array([float(row[4]) for row in parsed_rows], dtype=float)
+        volumes = np.array([float(row[5]) for row in parsed_rows], dtype=float)
+        is_close = [bool(row[6]) for row in parsed_rows]
+
+        _ = opens, volumes, is_close  # placeholders for future logic
 
         name = self.params.name  # already upper-cased by validator
         args = self.params.params or self._DEFAULT_PARAMS[name]

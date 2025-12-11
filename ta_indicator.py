@@ -76,6 +76,28 @@ class ta_indicator(IndicatorBase):
     def __init__(self, params: TAConfig):
         self.params = params
 
+    def describe_purpose(self) -> str:
+        return (
+            "Compute a TA-Lib indicator (ATR/CCI/MACD/RSI/MA/EMA) based on the configured name "
+            "and align results with the provided bar timestamps."
+        )
+
+    def describe_params(self) -> str:
+        return (
+            "TAConfig(name: str, params: Tuple[float, ...]). "
+            "name selects the TA-Lib function (ATR/CCI/MACD/RSI/MA/EMA). "
+            "params supplies the periods: ATR(timeperiod), CCI(timeperiod), "
+            "MACD(fast, slow, signal), RSI(timeperiod), MA(timeperiod), EMA(timeperiod). "
+            "If params is empty the class defaults to (14), (20), or (12,26,9) accordingly."
+        )
+
+    def describe_output(self) -> str:
+        return (
+            "Returns List[IndicatorResultBase] aligned with input bars. "
+            "Each entry contains the original timestamp plus indicator-specific fields "
+            "(atr/cci/rsi/ma/ema or macd/signal/hist). Warm-up elements may be NaN."
+        )
+
     def on_bar(self, bars: List[dict]) -> List[IndicatorResultBase]:
         if not bars:
             return []
